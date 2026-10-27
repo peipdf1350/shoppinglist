@@ -63,6 +63,7 @@ svg{flex:none}.seg{display:flex;flex:none;background:var(--wm);border-radius:12p
 .grid,.pg{gap:var(--s12)}.grid .card{padding:var(--s8) var(--s8) var(--s12)}
 .nm{margin-top:0}.card .kr{margin-top:var(--s4)}
 .row>.seg{flex:none;margin-left:auto}
+input[type=date]{-webkit-appearance:none;appearance:none;display:block;width:100%;min-width:0;max-width:100%;text-align:left}input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}.row>div{align-self:flex-start}
 </style></head><body><div id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
@@ -110,8 +111,9 @@ const rng=(a,b,f)=>a===''||a==null?'—':(b===''||b==null||a==b?f(a):f(a)+'–'+
 const wr=(a,b)=>rng(a,b,x=>Number(x).toLocaleString()+'₩');
 const tr=(a,b)=>rng(a,b,x=>'NT$'+x);
 const copy=async(t,say)=>{try{await navigator.clipboard.writeText(t);say('已複製：'+t)}catch(e){say('無法自動複製，請長按選取')}};
-const P={home:'M4 11l8-7 8 7v9H4zM10 20v-6h4v6',list:'M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2',add:'M12 4a8 8 0 100 16 8 8 0 000-16zM12 8v8M8 12h8',budget:'M4 7h15a1 1 0 011 1v11H5a1 1 0 01-1-1zM4 7l2-3h11M15 14h3',search:'M11 5a6 6 0 100 12 6 6 0 000-12zM20 20l-4.5-4.5',bag:'M6 8h12l1 12H5zM9 8a3 3 0 016 0',grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',rows:'M4 5h16M4 12h16M4 19h16',chev:'M9 6l6 6-6 6'};
+const P={home:'M4 11l8-7 8 7v9H4zM10 20v-6h4v6',list:'M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2',add:'M12 4a8 8 0 100 16 8 8 0 000-16zM12 8v8M8 12h8',budget:'M4 7h15a1 1 0 011 1v11H5a1 1 0 01-1-1zM4 7l2-3h11M15 14h3',search:'M11 5a6 6 0 100 12 6 6 0 000-12zM20 20l-4.5-4.5',bag:'M6 8h12l1 12H5zM9 8a3 3 0 016 0',grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',rows:'M4 5h16M4 12h16M4 19h16',chev:'M9 6l6 6-6 6',fav:'M7 4h10v16l-5-4-5 4z'};
 const ic=n=>html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d=${P[n]}/></svg>`;
+const twd=(v,r)=>+v?'≈ NT$'+Math.round(v*r).toLocaleString():'\u00a0';
 function Img({src,big,onClick}){const[bad,setBad]=useState(false);
  return html`<div class="img" onClick=${onClick}>${src&&!bad?html`<img src=${src} alt="" onError=${()=>setBad(true)}/>`:ic('bag')}</div>`}
 function Sheet({children,onClose}){return html`<div class="ov" onClick=${onClose}><div class="sheet" onClick=${e=>e.stopPropagation()}>${children}</div></div>`}
@@ -147,7 +149,7 @@ function Form({item,db,onSave,onClose,onDelete}){
  <label>購買地點（可複選）</label><div class="tabs" style=${{flexWrap:'wrap'}}>${db.places.map(p=>html`<button key=${p.id} class=${f.places.includes(p.id)?'on':''} onClick=${()=>set('places',f.places.includes(p.id)?f.places.filter(x=>x!==p.id):[...f.places,p.id])}>${p.name}</button>`)}</div>
  <label>分類</label><select value=${f.cat} onChange=${e=>set('cat',e.target.value)}>${db.cats.map(c=>html`<option key=${c.id} value=${c.id}>${c.name}</option>`)}</select>
  <div class="blk"><div class="bt">商品資訊</div><div class="two"><div>${T('spec','容量／規格')}</div><div>${T('color','推薦色號／款式')}</div></div>${T('desc','用途／說明')}${T('note','備註')}</div>
- <div class="row"><div>${T('krMin','韓國最低 ₩','number')}</div><div>${T('krMax','韓國最高 ₩','number')}</div></div>
+ <div class="row"><div>${T('krMin','韓國最低 ₩','number')}<div class="sub" style=${{marginTop:2}}>${twd(f.krMin,db.rate)}</div></div><div>${T('krMax','韓國最高 ₩','number')}<div class="sub" style=${{marginTop:2}}>${twd(f.krMax,db.rate)}</div></div></div>
  <div class="row"><div>${T('twMin','台灣最低 NT$','number')}</div><div>${T('twMax','台灣最高 NT$','number')}</div></div>
  ${T('qty','預計購買數量','number')}
  <label class="row"><input type="checkbox" style=${{width:24,minHeight:24}} checked=${f.priority} onChange=${e=>set('priority',e.target.checked)}/>優先購買</label>
@@ -165,12 +167,12 @@ function Detail({it,db,upd,onEdit,onClose,say}){
  <div>${it.places.map(id=>html`<span class="tag" key=${id}>${pn(id)}</span>`)}</div>
  ${it.desc&&html`<p>${it.desc}</p>`}${it.note&&html`<p class="sub">備註：${it.note}</p>`}
  <div class="card" style=${{marginTop:10}}><b>實際購買紀錄</b>
-  <div class="row"><div><label>單價 ₩</label><input type="number" inputMode="numeric" value=${b.paid} onChange=${e=>setB({...b,paid:e.target.value})}/></div><div><label>數量</label><input type="number" inputMode="numeric" value=${b.pq} onChange=${e=>setB({...b,pq:e.target.value})}/></div></div>
+  <div class="row"><div><label>單價 ₩</label><input type="number" inputMode="numeric" value=${b.paid} onChange=${e=>setB({...b,paid:e.target.value})}/><div class="sub" style=${{marginTop:2}}>${twd(b.paid,db.rate)}</div></div><div><label>數量</label><input type="number" inputMode="numeric" value=${b.pq} onChange=${e=>setB({...b,pq:e.target.value})}/></div></div>
   <label>日期</label><input type="date" value=${b.date} onChange=${e=>setB({...b,date:e.target.value})}/>
   <label>購買地點</label><select value=${b.pl} onChange=${e=>setB({...b,pl:e.target.value})}><option value="">—</option>${db.places.map(p=>html`<option key=${p.id} value=${p.id}>${p.name}</option>`)}</select>
   <div class="row" style=${{marginTop:10}}>${it.bought&&html`<button onClick=${()=>{upd({...it,bought:false});say('已改回想買')}}>取消已購買</button>`}
   <button class="pk" style=${{flex:1}} onClick=${()=>{upd({...it,bought:true,paid:+b.paid||0,paidQty:+b.pq||1,paidDate:b.date,paidPlace:b.pl});say('已儲存購買紀錄 ✓');onClose()}}>${it.bought?'更新紀錄':'標記已購買'}</button></div></div>
- <div class="row" style=${{marginTop:10}}><button onClick=${()=>upd({...it,priority:!it.priority})}>${it.priority?'取消優先':'優先'}</button><button style=${{flex:1}} onClick=${onEdit}>編輯</button><button onClick=${onClose}>關閉</button></div><//>`}
+ <div class="row" style=${{marginTop:10}}><button onClick=${()=>upd({...it,priority:!it.priority})}>${it.priority?'取消優先':'優先'}</button><button onClick=${()=>{upd({...it,fav:!it.fav});say(it.fav?'已移回清單':'已移入收藏');onClose()}}>${it.fav?'移回清單':'移入收藏'}</button><button style=${{flex:1}} onClick=${onEdit}>編輯</button><button onClick=${onClose}>關閉</button></div><//>`}
 
 function Card({it,shop,list,db,open,upd,say}){
  return html`<div class=${'card '+(it.bought?'done ':'')+(shop?'big':'')} onClick=${open}>
@@ -188,7 +190,7 @@ function App(){
  const say=m=>{setToast(m);clearTimeout(window._t);window._t=setTimeout(()=>setToast(''),1800)};
  useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}},[db]);
  const upd=it=>setDb(d=>({...d,items:d.items.map(x=>x.id===it.id?it:x)}));
- const items=db.items,left=items.filter(i=>!i.bought),spent=items.filter(i=>i.bought).reduce((s,i)=>s+(i.paid||0)*(i.paidQty||1),0);
+ const favs=db.items.filter(i=>i.fav),items=db.items.filter(i=>!i.fav),left=items.filter(i=>!i.bought),spent=items.filter(i=>i.bought).reduce((s,i)=>s+(i.paid||0)*(i.paidQty||1),0);
  let vis=items.filter(i=>(!pl||i.places.includes(pl))&&(!cat||i.cat===cat)&&(flt==='all'||(flt==='todo'&&!i.bought)||(flt==='done'&&i.bought)||(flt==='pri'&&i.priority))&&(!q||[i.zh,i.ko,i.en,i.brand].join(' ').toLowerCase().includes(q.toLowerCase())));
  if(sort==='name')vis=[...vis].sort((a,b)=>a.zh.localeCompare(b.zh,'zh-Hant'));
  if(sort==='lo')vis=[...vis].sort((a,b)=>(a.krMin||0)-(b.krMin||0));
@@ -225,9 +227,10 @@ function App(){
   <div class="row"><button onClick=${()=>{const s=JSON.stringify(db);setIo(s);copy(s,say)}}>JSON 備份</button><button onClick=${()=>{setIo(csv());copy(csv(),say)}}>CSV</button>
   <button onClick=${()=>{try{const d=JSON.parse(io);if(!d.items||!d.places)throw 0;setDb(d);say('已還原 ✓')}catch(e){say('格式錯誤，無法還原')}}}>還原</button></div>
   <textarea rows="5" placeholder="備份內容會顯示於此；還原時請貼上 JSON" value=${io} onChange=${e=>setIo(e.target.value)} style=${{marginTop:8}}></textarea></div></div>`}
- <nav><div>${[['home','home','首頁'],['list','list','清單'],['add','add','新增'],['budget','budget','預算']].map(([k,e,l])=>html`<button key=${k} class=${tab===k?'on':''} onClick=${()=>k==='add'?setSheet({t:'form'}):go(k)}>${ic(e)}<span>${l}</span></button>`)}</div></nav>
- ${sheet?.t==='detail'&&(it=>it&&html`<${Detail} it=${it} db=${db} upd=${upd} say=${say} onClose=${()=>setSheet(null)} onEdit=${()=>setSheet({t:'form',id:it.id})}/>`)(items.find(i=>i.id===sheet.id))}
- ${sheet?.t==='form'&&html`<${Form} item=${items.find(i=>i.id===sheet.id)} db=${db} onSave=${save} onClose=${()=>setSheet(null)} onDelete=${del}/>`}
+ ${tab==='fav'&&html`<div class="pgcol"><div class="row sp"><h1>收藏</h1><span class="sub">${favs.length} 件</span></div><p class="sub">收藏的商品不計入清單、進度與預算，想買時可以移回清單。</p><div class="grid">${favs.map(i=>html`<${Card} key=${i.id} it=${i} list=${false} db=${db} upd=${upd} say=${say} open=${()=>setSheet({t:'detail',id:i.id})}/>`)}</div>${!favs.length&&html`<p class="sub">還沒有收藏的商品。在商品詳細頁按「移入收藏」。</p>`}</div>`}
+ <nav><div>${[['home','home','首頁'],['list','list','清單'],['add','add','新增'],['fav','fav','收藏'],['budget','budget','預算']].map(([k,e,l])=>html`<button key=${k} class=${tab===k?'on':''} onClick=${()=>k==='add'?setSheet({t:'form'}):go(k)}>${ic(e)}<span>${l}</span></button>`)}</div></nav>
+ ${sheet?.t==='detail'&&(it=>it&&html`<${Detail} it=${it} db=${db} upd=${upd} say=${say} onClose=${()=>setSheet(null)} onEdit=${()=>setSheet({t:'form',id:it.id})}/>`)(db.items.find(i=>i.id===sheet.id))}
+ ${sheet?.t==='form'&&html`<${Form} item=${db.items.find(i=>i.id===sheet.id)} db=${db} onSave=${save} onClose=${()=>setSheet(null)} onDelete=${del}/>`}
  ${sheet?.t==='places'&&html`<${Manage} short=${true} title="管理購買地點" list=${db.places} onChange=${v=>setDb({...db,places:v})} onClose=${()=>setSheet(null)}/>`}
  ${sheet?.t==='cats'&&html`<${Manage} title="管理商品分類" list=${db.cats} onChange=${v=>setDb({...db,cats:v})} onClose=${()=>setSheet(null)}/>`}
  ${toast&&html`<div class="toast">${toast}</div>`}</div>`}
